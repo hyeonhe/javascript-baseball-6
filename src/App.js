@@ -1,46 +1,53 @@
-import { MissionUtils } from "@woowacourse/mission-utils";
+import { Console } from "@woowacourse/mission-utils";
 import getUserInput from "./utils/getUserInput";
 import generateComputerNumber from "./utils/generateComputerNumber";
 import countStrikeBall from "./utils/countStrikeBall";
-import restartOrQuit from "./utils/restartOrQuit";
+import OutputView from "./views/OutputView";
+import { NUMBER_LENGTH } from "./constants/constants";
+import InputView from "./views/InputView";
 
 class App {
+  gameInProgress = true;
+  computerNumber = generateComputerNumber();
+
   async play() {
     try {
-      MissionUtils.Console.print("숫자 야구 게임을 시작합니다.");
+      OutputView.printStart();
 
-      const NUMBER_LENGTH = 3;
-      let computerNumber = generateComputerNumber();
-
-      while (true) {
+      while (this.gameInProgress) {
         let userNumber = await getUserInput();
 
-        const { strike, ball } = countStrikeBall(userNumber, computerNumber);
+        const { strike, ball } = countStrikeBall(
+          userNumber,
+          this.computerNumber
+        );
 
         if (strike === NUMBER_LENGTH) {
-          MissionUtils.Console.print(`${strike}스트라이크`);
-          MissionUtils.Console.print(
-            "3개의 숫자를 모두 맞히셨습니다! 게임 종료"
-          );
-
-          const restart = await restartOrQuit();
-
-          if (restart === 1) {
-            computerNumber = generateComputerNumber();
-          } else if (restart === 2) {
-            break;
-          }
+          await this.handleStrikeOutcome();
         } else if (ball === NUMBER_LENGTH) {
-          MissionUtils.Console.print(`${ball}볼`);
+          OutputView.printBall(ball);
         } else if (strike === 0 && ball === 0) {
-          MissionUtils.Console.print("낫싱");
+          OutputView.printNothing();
         } else if (strike > 0 && ball > 0) {
-          MissionUtils.Console.print(`${ball}볼 ${strike}스트라이크`);
+          OutputView.printResult(ball, strike);
         }
       }
     } catch (error) {
-      MissionUtils.Console.print(error.message);
+      Console.print(error.message);
       throw new Error("[ERROR]");
+    }
+  }
+
+  async handleStrikeOutcome() {
+    OutputView.printStrike();
+    OutputView.printQuitGame();
+
+    const restart = await InputView.restartOrQuit();
+
+    if (restart === 1) {
+      this.computerNumber = generateComputerNumber();
+    } else if (restart === 2) {
+      this.gameInProgress = false;
     }
   }
 }

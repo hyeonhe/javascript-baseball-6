@@ -1,12 +1,11 @@
-import { MissionUtils } from "@woowacourse/mission-utils";
 import hasDuplicateDigits from "./hasDuplicateDigits";
+import { NUMBER_LENGTH } from "../constants/constants";
+import InputView from "../views/InputView";
+
 async function getUserInput() {
-  const NUMBER_LENGTH = 3;
   let userNumber = "";
 
-  userNumber = await MissionUtils.Console.readLineAsync(
-    "숫자를 입력해주세요 : "
-  );
+  userNumber = await InputView.readUserNumber();
 
   if (
     userNumber === null ||
