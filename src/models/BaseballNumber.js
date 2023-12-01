@@ -18,8 +18,6 @@ class BaseballNumber {
 
   isInValidUserNumber() {
     return (
-      this.#userNumber === null ||
-      this.#userNumber === undefined ||
       String(this.#userNumber).length !== NUMBER_LENGTH ||
       Object.is(this.#userNumber, NaN) ||
       this.#hasDuplicateDigits(this.#userNumber)
