@@ -3,7 +3,7 @@ import generateComputerNumber from "../utils/generateComputerNumber";
 import countStrikeBall from "../utils/countStrikeBall";
 import InputView from "../views/InputView";
 import OutputView from "../views/OutputView";
-import { NUMBER_LENGTH } from "../constants/constants";
+import { GAME_CONTROLL, NUMBER_LENGTH, ZERO } from "../constants/constants";
 import BaseballNumber from "../models/BaseballNumber";
 
 class BaseballController {
@@ -18,43 +18,47 @@ class BaseballController {
   async init() {
     try {
       OutputView.printStart();
-
-      while (this.#gameInProgress) {
-        await this.#processTurn();
-      }
+      await this.#gameRun();
     } catch (error) {
       this.#handleError(error);
     }
   }
 
+  async #gameRun() {
+    while (this.#gameInProgress) await this.#processTurn();
+  }
+
   async #processTurn() {
     await this.#baseballNumber.getUserInput();
     const userNumber = this.#baseballNumber.getUserNumber();
-
     const { strike, ball } = countStrikeBall(userNumber, this.#computerNumber);
 
-    if (strike === NUMBER_LENGTH) {
+    await this.#handleTurnOutcome(strike, ball);
+  }
+
+  async #handleTurnOutcome(strike, ball) {
+    if (strike === NUMBER_LENGTH && ball === ZERO)
       await this.#handleStrikeOutcome();
-    } else if (ball === NUMBER_LENGTH) {
+    else if (strike === ZERO && ball === NUMBER_LENGTH)
       OutputView.printBall(ball);
-    } else if (strike === 0 && ball === 0) {
-      OutputView.printNothing();
-    } else if (strike > 0 && ball > 0) {
-      OutputView.printResult(ball, strike);
-    }
+    else if (strike === ZERO && ball === ZERO) OutputView.printNothing();
+    else if (strike > ZERO && ball > ZERO) OutputView.printResult(ball, strike);
   }
 
   async #handleStrikeOutcome() {
     OutputView.printStrike();
     OutputView.printQuitGame();
-
     const restart = await InputView.restartOrQuit();
+    this.#restartOrQuit(restart);
+  }
 
-    if (restart === 1) {
-      this.#computerNumber = generateComputerNumber();
-    } else if (restart === 2) {
-      this.#endGame();
-    }
+  #restartOrQuit(restart) {
+    if (restart === GAME_CONTROLL.restart) this.#restartGame();
+    else if (restart === GAME_CONTROLL.quit) this.#endGame();
+  }
+
+  #restartGame() {
+    this.#computerNumber = generateComputerNumber();
   }
 
   #endGame() {
